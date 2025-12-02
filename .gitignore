@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Output files (regenerowane przez program)
+output/*.png
+output/*.txt
+
+# System
+.DS_Store
+Thumbs.db
+
+# Stary plik monolityczny (opcjonalnie)
+fuzzy_gym_machine.py
+.claude/
