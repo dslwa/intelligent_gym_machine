@@ -1,4 +1,4 @@
-# Intelligent Gym Machine — Fuzzy Inference System
+# Intelligent Gym Machine - Fuzzy Inference System
 
 An intelligent training machine control system based on fuzzy logic (Mamdani FIS). Dynamically adjusts machine resistance and generates real-time feedback based on the user's biomechanical parameters during exercise.
 
@@ -87,7 +87,7 @@ IF (mode = strength AND force = very_high AND fatigue = fresh)
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/dslwa/intelligent_gym_machine.git
 cd intelligent_gym_machine
 pip install -r requirements.txt
 ```
