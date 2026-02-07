@@ -1,7 +1,3 @@
-"""
-Moduł eksperymentów z różnymi typami funkcji przynależności.
-"""
-
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -11,9 +7,6 @@ from ..core.experimental import IntelligentGymMachineExperimental
 
 
 def compare_membership_functions(output_dir='output'):
-    """
-    Porównuje różne typy funkcji przynależności na jednym wykresie.
-    """
     print("\n" + "=" * 70)
     print("  EKSPERYMENT: POROWNANIE FUNKCJI PRZYNALEZNOSCI")
     print("=" * 70)
@@ -64,9 +57,6 @@ def compare_membership_functions(output_dir='output'):
 
 
 def compare_inference_results(output_dir='output'):
-    """
-    Porównuje wyniki wnioskowania dla różnych typów funkcji przynależności.
-    """
     print("\n" + "=" * 70)
     print("  EKSPERYMENT: POROWNANIE WYNIKOW WNIOSKOWANIA")
     print("=" * 70)
@@ -127,7 +117,6 @@ def compare_inference_results(output_dir='output'):
 
     print("-" * 100)
 
-    # Generowanie wykresu
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     ax1 = axes[0]
@@ -168,34 +157,13 @@ def compare_inference_results(output_dir='output'):
     plt.close()
     print(f"\nZapisano: {save_path}")
 
-    # Podsumowanie
     print("\n" + "=" * 70)
     print("  WNIOSKI Z EKSPERYMENTU")
     print("=" * 70)
-    print("""
-  1. FUNKCJE TROJKATNE/TRAPEZOIDALNE (domyslne):
-     + Najlepsza interpretowalnosc
-     + Efektywne obliczeniowo
-     + Standardowy wybor w systemach przemyslowych
 
-  2. FUNKCJE GAUSSOWSKIE:
-     + Gladkie przejscia
-     + Dobre dla zmiennych biologicznych
-
-  3. GENERALIZED BELL:
-     + Plaski szczyt - stabilne wyjscie
-     + Kontrolowalna strmosc zboczy
-
-  4. FUNKCJE SIGMOIDALNE:
-     + Dobre dla zmiennych progowych
-     - Trudne dla zbiorow srodkowych
-
-  REKOMENDACJA: Funkcje trojkatne dla interpretowalnosci
-""")
 
 
 def run_experiments(output_dir='output'):
-    """Uruchamia wszystkie eksperymenty z funkcjami przynależności."""
     print("\n" + "=" * 70)
     print("  EKSPERYMENTY Z FUNKCJAMI PRZYNALEZNOSCI")
     print("  (trojkatne, gaussowskie, generalized bell, sigmoidalne)")

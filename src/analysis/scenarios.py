@@ -1,12 +1,7 @@
-"""
-Moduł analizy scenariuszy wnioskowania.
-"""
-
 from ..core.fis_engine import IntelligentGymMachine
 
 
 def check_scenario_validity(scenario, result):
-    """Sprawdza czy wynik scenariusza jest zgodny z oczekiwaniami."""
     s = scenario
     r = result
 
@@ -26,9 +21,6 @@ def check_scenario_validity(scenario, result):
 
 
 def run_scenarios_with_analysis(machine=None):
-    """
-    Uruchomienie przykładowych scenariuszy wnioskowania z rozszerzoną analizą.
-    """
     if machine is None:
         machine = IntelligentGymMachine()
 
@@ -85,8 +77,7 @@ def run_scenarios_with_analysis(machine=None):
 
     output = []
     output.append("=" * 80)
-    output.append("       SCENARIUSZE WNIOSKOWANIA Z ANALIZA ZGODNOSCI")
-    output.append("       (zgodne z wymaganiami instrukcji - sekcja 3.3)")
+    output.append("SCENARIUSZE WNIOSKOWANIA Z ANALIZA ZGODNOSCI")
     output.append("=" * 80)
 
     all_results = []
@@ -116,7 +107,6 @@ def run_scenarios_with_analysis(machine=None):
         output.append(f"\n  UZASADNIENIE BIOMECHANICZNE:")
         output.append(f"    {s['uzasadnienie']}")
 
-        # Ocena zgodności
         output.append(f"\n  OCENA ZGODNOSCI Z INTUICJA:")
         if result['opor'] < 30:
             opor_level = "niski"

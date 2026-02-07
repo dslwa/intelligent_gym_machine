@@ -1,7 +1,4 @@
-"""
-Moduł wizualizacji - funkcje do generowania wykresów.
-"""
-
+import os
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -9,17 +6,69 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage import gaussian_filter
 
-plt.rcParams['font.family'] = 'DejaVu Sans'
+os.makedirs('output_trojkat', exist_ok=True)
+os.makedirs('output_gauss', exist_ok=True)
+
+print('='*70)
+print('  GENEROWANIE WYKRESOW DLA FUNKCJI TROJKATNYCH')
+print('='*70)
+
+from src.core.fis_engine import IntelligentGymMachine
+from src.visualization.plots import plot_membership_functions, plot_surface_3d
+
+machine_tri = IntelligentGymMachine()
+print('System trojkatny zainicjalizowany')
+
+plot_membership_functions(machine_tri, save_path='membership_functions.png', output_dir='output_trojkat')
+
+plot_surface_3d(
+    machine_tri,
+    'sila', 'faza',
+    (50, 450, 10), (0, 100, 2),
+    {'predkosc': 0.6, 'zmeczenie': 30, 'tryb': 2},
+    save_path='surface_sila_faza.png',
+    output_dir='output_trojkat',
+    smooth=True
+)
+
+plot_surface_3d(
+    machine_tri,
+    'zmeczenie', 'predkosc',
+    (0, 100, 2), (0.1, 1.4, 0.05),
+    {'sila': 250, 'faza': 50, 'tryb': 2},
+    save_path='surface_zmeczenie_predkosc.png',
+    output_dir='output_trojkat',
+    smooth=True
+)
+
+print('Wykresy trojkatne zapisane w output_trojkat/')
+
+from src.visualization.plots import simulate_exercise
+
+print('Generowanie symulacji cwiczen (trojkatne)...')
+simulate_exercise(machine_tri, tryb=2, serie=3, powtorzenia=10,
+                  save_path='simulation_hipertrofia.png', output_dir='output_trojkat')
+simulate_exercise(machine_tri, tryb=1, serie=3, powtorzenia=5,
+                  save_path='simulation_silowy.png', output_dir='output_trojkat')
+
+print()
+print('='*70)
+print('  GENEROWANIE WYKRESOW DLA FUNKCJI GAUSSOWSKICH')
+print('='*70)
+
+from src.core.experimental import IntelligentGymMachineExperimental
+
+machine_gauss = IntelligentGymMachineExperimental(mf_type='gaussian')
+print('System gaussowski zainicjalizowany')
 
 
-def plot_membership_functions(machine, save_path=None, output_dir='output'):
-    fig = plt.figure(figsize=(16, 14))
+def plot_membership_exp(machine, save_path, output_dir):
     gs = GridSpec(4, 2, figure=fig, hspace=0.35, wspace=0.25)
 
     ax1 = fig.add_subplot(gs[0, 0])
     for label in machine.sila.terms:
         ax1.plot(machine.sila.universe, machine.sila[label].mf, linewidth=2, label=label)
-    ax1.set_title('1. Sila generowana [N]', fontsize=12, fontweight='bold')
+    ax1.set_title('1. Sila generowana [N] - GAUSS', fontsize=12, fontweight='bold')
     ax1.set_xlabel('Sila [N]')
     ax1.set_ylabel('Stopien przynaleznosci')
     ax1.legend(loc='upper right', fontsize=8)
@@ -29,7 +78,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     ax2 = fig.add_subplot(gs[0, 1])
     for label in machine.predkosc.terms:
         ax2.plot(machine.predkosc.universe, machine.predkosc[label].mf, linewidth=2, label=label)
-    ax2.set_title('2. Predkosc ruchu [m/s]', fontsize=12, fontweight='bold')
+    ax2.set_title('2. Predkosc ruchu [m/s] - GAUSS', fontsize=12, fontweight='bold')
     ax2.set_xlabel('Predkosc [m/s]')
     ax2.set_ylabel('Stopien przynaleznosci')
     ax2.legend(loc='upper right', fontsize=8)
@@ -39,7 +88,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     ax3 = fig.add_subplot(gs[1, 0])
     for label in machine.faza.terms:
         ax3.plot(machine.faza.universe, machine.faza[label].mf, linewidth=2, label=label)
-    ax3.set_title('3. Faza ruchu [% ROM]', fontsize=12, fontweight='bold')
+    ax3.set_title('3. Faza ruchu [% ROM] - GAUSS', fontsize=12, fontweight='bold')
     ax3.set_xlabel('Faza ruchu [%]')
     ax3.set_ylabel('Stopien przynaleznosci')
     ax3.legend(loc='upper right', fontsize=8)
@@ -49,7 +98,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     ax4 = fig.add_subplot(gs[1, 1])
     for label in machine.zmeczenie.terms:
         ax4.plot(machine.zmeczenie.universe, machine.zmeczenie[label].mf, linewidth=2, label=label)
-    ax4.set_title('4. Wskaznik zmeczenia [%]', fontsize=12, fontweight='bold')
+    ax4.set_title('4. Wskaznik zmeczenia [%] - GAUSS', fontsize=12, fontweight='bold')
     ax4.set_xlabel('Zmeczenie [%]')
     ax4.set_ylabel('Stopien przynaleznosci')
     ax4.legend(loc='upper right', fontsize=8)
@@ -60,7 +109,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     for label in machine.tryb.terms:
         ax5.plot(machine.tryb.universe, machine.tryb[label].mf, linewidth=2, label=label)
     ax5.set_title('5. Tryb treningu', fontsize=12, fontweight='bold')
-    ax5.set_xlabel('Tryb (1=silowy, 2=hipertrofia, 3=wytrzymalosc)')
+    ax5.set_xlabel('Tryb')
     ax5.set_ylabel('Stopien przynaleznosci')
     ax5.legend(loc='upper right', fontsize=8)
     ax5.grid(True, alpha=0.3)
@@ -69,7 +118,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     ax6 = fig.add_subplot(gs[2, 1])
     for label in machine.opor.terms:
         ax6.plot(machine.opor.universe, machine.opor[label].mf, linewidth=2, label=label)
-    ax6.set_title('6. Opor maszyny [%] - WYJSCIE', fontsize=12, fontweight='bold')
+    ax6.set_title('6. Opor maszyny [%] - GAUSS - WYJSCIE', fontsize=12, fontweight='bold')
     ax6.set_xlabel('Opor [%]')
     ax6.set_ylabel('Stopien przynaleznosci')
     ax6.legend(loc='upper right', fontsize=8)
@@ -80,7 +129,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     for label in machine.feedback.terms:
         ax7.plot(machine.feedback.universe, machine.feedback[label].mf, linewidth=2, label=label)
     ax7.set_title('7. Sygnal feedbacku - WYJSCIE', fontsize=12, fontweight='bold')
-    ax7.set_xlabel('Feedback (1=zwolnij, 3=idealnie, 5=stop)')
+    ax7.set_xlabel('Feedback')
     ax7.set_ylabel('Stopien przynaleznosci')
     ax7.legend(loc='upper right', fontsize=8)
     ax7.grid(True, alpha=0.3)
@@ -89,42 +138,33 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
     ax8 = fig.add_subplot(gs[3, 1])
     ax8.axis('off')
     info_text = """
-    SYSTEM FIS - INTELIGENTNA MASZYNA TRENINGOWA
+    SYSTEM FIS - FUNKCJE GAUSSOWSKIE
     ============================================
 
     Typ systemu: Mamdani
+    Funkcje przynaleznosci: GAUSSOWSKIE
     Metoda defuzyfikacji: Centroid
-    Operatory:
-      * AND (T-norma): minimum
-      * OR (S-norma): maximum
-      * Implikacja: minimum
-      * Agregacja: maximum
 
-    Zmienne wejsciowe: 5
-    Zmienne wyjsciowe: 2
-    Liczba regul: 30
+    Zalety funkcji Gaussowskich:
+      * Gladkie przejscia
+      * Brak punktow przegiec
+      * Naturalne dla zmiennych biologicznych
     """
     ax8.text(0.1, 0.5, info_text, transform=ax8.transAxes, fontsize=10,
             verticalalignment='center', fontfamily='monospace',
-            bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.8))
+            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
 
-    plt.suptitle('Funkcje przynaleznosci zmiennych lingwistycznych',
-                fontsize=14, fontweight='bold', y=0.98)
+    plt.suptitle('Funkcje przynaleznosci - GAUSSOWSKIE', fontsize=14, fontweight='bold', y=0.98)
 
-    if save_path:
-        full_path = f"{output_dir}/{save_path}" if output_dir else save_path
-        plt.savefig(full_path, dpi=150, bbox_inches='tight')
-        print(f"Zapisano wykres: {full_path}")
-
+    full_path = f'{output_dir}/{save_path}'
+    plt.savefig(full_path, dpi=150, bbox_inches='tight')
     plt.close()
+    print(f'Zapisano wykres: {full_path}')
 
 
-def plot_surface_3d(machine, var1_name, var2_name, var1_range, var2_range,
-                    fixed_values, save_path=None, output_dir='output', smooth=True):
- 
+def plot_surface_exp(machine, var1_name, var2_name, var1_range, var2_range, fixed_values, save_path, output_dir):
     var1_start, var1_end, var1_step = var1_range
     var2_start, var2_end, var2_step = var2_range
-
     var1_step_fine = var1_step / 2
     var2_step_fine = var2_step / 2
 
@@ -145,15 +185,16 @@ def plot_surface_3d(machine, var1_name, var2_name, var1_range, var2_range,
 
     for i in range(len(var2_vals)):
         for j in range(len(var1_vals)):
-            machine.simulator.reset()
-
-            for var, val in fixed_values.items():
-                machine.simulator.input[var_mapping[var]] = val
-
-            machine.simulator.input[var_mapping[var1_name]] = var1_vals[j]
-            machine.simulator.input[var_mapping[var2_name]] = var2_vals[i]
-
             try:
+                inputs = dict(fixed_values)
+                inputs[var1_name] = var1_vals[j]
+                inputs[var2_name] = var2_vals[i]
+
+                machine.simulator.input['sila_generowana'] = inputs.get('sila', 250)
+                machine.simulator.input['predkosc_ruchu'] = inputs.get('predkosc', 0.6)
+                machine.simulator.input['faza_ruchu'] = inputs.get('faza', 50)
+                machine.simulator.input['wskaznik_zmeczenia'] = inputs.get('zmeczenie', 30)
+                machine.simulator.input['tryb_treningu'] = inputs.get('tryb', 2)
                 machine.simulator.compute()
                 Z_opor[i, j] = machine.simulator.output['opor_maszyny']
                 Z_feedback[i, j] = machine.simulator.output['sygnal_feedback']
@@ -161,48 +202,61 @@ def plot_surface_3d(machine, var1_name, var2_name, var1_range, var2_range,
                 Z_opor[i, j] = np.nan
                 Z_feedback[i, j] = np.nan
 
-    if smooth:
-        Z_opor = np.nan_to_num(Z_opor, nan=np.nanmean(Z_opor))
-        Z_feedback = np.nan_to_num(Z_feedback, nan=np.nanmean(Z_feedback))
-
-        Z_opor = gaussian_filter(Z_opor, sigma=1.5)
-        Z_feedback = gaussian_filter(Z_feedback, sigma=1.5)
+    Z_opor = np.nan_to_num(Z_opor, nan=np.nanmean(Z_opor))
+    Z_feedback = np.nan_to_num(Z_feedback, nan=np.nanmean(Z_feedback))
+    Z_opor = gaussian_filter(Z_opor, sigma=1.5)
+    Z_feedback = gaussian_filter(Z_feedback, sigma=1.5)
 
     fig = plt.figure(figsize=(14, 6))
 
     ax1 = fig.add_subplot(121, projection='3d')
-    surf1 = ax1.plot_surface(X, Y, Z_opor, cmap='viridis', edgecolor='none',
-                              alpha=0.9, antialiased=True, rstride=1, cstride=1)
+    surf1 = ax1.plot_surface(X, Y, Z_opor, cmap='viridis', edgecolor='none', alpha=0.9, antialiased=True)
     ax1.set_xlabel(f'{var1_name}')
     ax1.set_ylabel(f'{var2_name}')
     ax1.set_zlabel('Opor [%]')
-    ax1.set_title(f'Powierzchnia wnioskowania: Opor maszyny\n({var1_name} vs {var2_name})')
+    ax1.set_title(f'Powierzchnia: Opor (GAUSS)\n({var1_name} vs {var2_name})')
     fig.colorbar(surf1, ax=ax1, shrink=0.5, label='Opor [%]')
 
     ax2 = fig.add_subplot(122, projection='3d')
-    surf2 = ax2.plot_surface(X, Y, Z_feedback, cmap='plasma', edgecolor='none',
-                              alpha=0.9, antialiased=True, rstride=1, cstride=1)
+    surf2 = ax2.plot_surface(X, Y, Z_feedback, cmap='plasma', edgecolor='none', alpha=0.9, antialiased=True)
     ax2.set_xlabel(f'{var1_name}')
     ax2.set_ylabel(f'{var2_name}')
     ax2.set_zlabel('Feedback')
-    ax2.set_title(f'Powierzchnia wnioskowania: Feedback\n({var1_name} vs {var2_name})')
+    ax2.set_title(f'Powierzchnia: Feedback (GAUSS)\n({var1_name} vs {var2_name})')
     fig.colorbar(surf2, ax=ax2, shrink=0.5, label='Feedback')
 
     fixed_str = ', '.join([f'{k}={v}' for k, v in fixed_values.items()])
     plt.suptitle(f'Ustalone wartosci: {fixed_str}', fontsize=10, y=0.02)
 
     plt.tight_layout()
-
-    if save_path:
-        full_path = f"{output_dir}/{save_path}" if output_dir else save_path
-        plt.savefig(full_path, dpi=150, bbox_inches='tight')
-        print(f"Zapisano wykres: {full_path}")
-
+    full_path = f'{output_dir}/{save_path}'
+    plt.savefig(full_path, dpi=150, bbox_inches='tight')
     plt.close()
+    print(f'Zapisano wykres: {full_path}')
 
+plot_membership_exp(machine_gauss, 'membership_functions.png', 'output_gauss')
 
-def simulate_exercise(machine, tryb=2, serie=3, powtorzenia=10, save_path=None, output_dir='output'):
+plot_surface_exp(
+    machine_gauss,
+    'sila', 'faza',
+    (50, 450, 10), (0, 100, 2),
+    {'predkosc': 0.6, 'zmeczenie': 30, 'tryb': 2},
+    'surface_sila_faza.png',
+    'output_gauss'
+)
 
+plot_surface_exp(
+    machine_gauss,
+    'zmeczenie', 'predkosc',
+    (0, 100, 2), (0.1, 1.4, 0.05),
+    {'sila': 250, 'faza': 50, 'tryb': 2},
+    'surface_zmeczenie_predkosc.png',
+    'output_gauss'
+)
+
+print('Wykresy gaussowskie zapisane w output_gauss/')
+
+def simulate_exercise_exp(machine, tryb, serie, powtorzenia, save_path, output_dir):
     tryb_nazwa = {1: 'Silowy', 2: 'Hipertrofia', 3: 'Wytrzymalosc'}
 
     results = {
@@ -240,7 +294,7 @@ def simulate_exercise(machine, tryb=2, serie=3, powtorzenia=10, save_path=None, 
                 results['feedback'].append(result['feedback'])
 
                 t += 0.05
-
+                
     fig, axes = plt.subplots(4, 1, figsize=(14, 12), sharex=True)
     time = np.array(results['time'])
 
@@ -252,7 +306,7 @@ def simulate_exercise(machine, tryb=2, serie=3, powtorzenia=10, save_path=None, 
     ax1_twin.set_ylabel('Opor [%]', color='red')
     ax1.legend(loc='upper left')
     ax1_twin.legend(loc='upper right')
-    ax1.set_title(f'Symulacja cwiczenia: Chest Press | Tryb: {tryb_nazwa[tryb]} | {serie} serie x {powtorzenia} powtorzen')
+    ax1.set_title(f'Symulacja cwiczenia (GAUSS): Chest Press | Tryb: {tryb_nazwa[tryb]} | {serie} serie x {powtorzenia} powtorzen')
     ax1.grid(True, alpha=0.3)
 
     ax2 = axes[1]
@@ -296,12 +350,21 @@ def simulate_exercise(machine, tryb=2, serie=3, powtorzenia=10, save_path=None, 
             ax.axvline(x=time[idx], color='gray', linestyle=':', alpha=0.5)
 
     plt.tight_layout()
-
-    if save_path:
-        full_path = f"{output_dir}/{save_path}" if output_dir else save_path
-        plt.savefig(full_path, dpi=150, bbox_inches='tight')
-        print(f"Zapisano wykres: {full_path}")
-
+    full_path = f'{output_dir}/{save_path}'
+    plt.savefig(full_path, dpi=150, bbox_inches='tight')
     plt.close()
+    print(f'Zapisano wykres: {full_path}')
 
-    return results
+print('Generowanie symulacji cwiczen (gaussowskie)...')
+simulate_exercise_exp(machine_gauss, tryb=2, serie=3, powtorzenia=10,
+                      save_path='simulation_hipertrofia.png', output_dir='output_gauss')
+simulate_exercise_exp(machine_gauss, tryb=1, serie=3, powtorzenia=5,
+                      save_path='simulation_silowy.png', output_dir='output_gauss')
+
+print()
+print('='*70)
+print('  GOTOWE!')
+print('='*70)
+print('  output_trojkat/ - funkcje trojkatne/trapezoidalne')
+print('  output_gauss/   - funkcje gaussowskie')
+print('='*70)

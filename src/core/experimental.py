@@ -1,27 +1,12 @@
-"""
-Eksperymentalna wersja systemu FIS z różnymi typami funkcji przynależności.
-Pozwala na porównanie: trójkątnych, Gaussowskich, Generalized Bell i sigmoidalnych.
-"""
-
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
 
 class IntelligentGymMachineExperimental:
-    """
-    Eksperymentalna wersja systemu FIS z różnymi typami funkcji przynależności.
-    """
-
     FUNCTION_TYPES = ['triangular', 'gaussian', 'gbell', 'sigmoid']
 
     def __init__(self, mf_type='triangular'):
-        """
-        Inicjalizacja systemu FIS z wybranym typem funkcji przynależności.
-
-        Args:
-            mf_type: 'triangular' (domyślny), 'gaussian', 'gbell', 'sigmoid'
-        """
         self.mf_type = mf_type
         self.setup_variables()
         self.setup_membership_functions()
@@ -29,7 +14,6 @@ class IntelligentGymMachineExperimental:
         self.build_system()
 
     def setup_variables(self):
-        """Definicja zmiennych lingwistycznych."""
         self.sila = ctrl.Antecedent(np.arange(0, 501, 1), 'sila_generowana')
         self.predkosc = ctrl.Antecedent(np.arange(0, 1.51, 0.01), 'predkosc_ruchu')
         self.faza = ctrl.Antecedent(np.arange(0, 101, 1), 'faza_ruchu')
@@ -39,9 +23,6 @@ class IntelligentGymMachineExperimental:
         self.feedback = ctrl.Consequent(np.arange(1, 5.01, 0.01), 'sygnal_feedback')
 
     def _create_mf(self, universe, centers, names, is_boundary=None):
-        """
-        Tworzy funkcje przynależności według wybranego typu.
-        """
         result = {}
         n = len(centers)
         if is_boundary is None:
@@ -90,9 +71,6 @@ class IntelligentGymMachineExperimental:
         return result
 
     def setup_membership_functions(self):
-        """Definicja funkcji przynależności według wybranego typu."""
-
-        # 1. SIŁA GENEROWANA
         sila_mf = self._create_mf(
             self.sila.universe,
             [50, 125, 250, 375, 450],
@@ -101,7 +79,6 @@ class IntelligentGymMachineExperimental:
         for name, mf in sila_mf.items():
             self.sila[name] = mf
 
-        # 2. PRĘDKOŚĆ RUCHU
         predkosc_mf = self._create_mf(
             self.predkosc.universe,
             [0.1, 0.35, 0.7, 1.1, 1.4],
@@ -110,7 +87,6 @@ class IntelligentGymMachineExperimental:
         for name, mf in predkosc_mf.items():
             self.predkosc[name] = mf
 
-        # 3. FAZA RUCHU
         faza_mf = self._create_mf(
             self.faza.universe,
             [10, 30, 50, 70, 90],
@@ -119,7 +95,6 @@ class IntelligentGymMachineExperimental:
         for name, mf in faza_mf.items():
             self.faza[name] = mf
 
-        # 4. WSKAŹNIK ZMĘCZENIA
         zmeczenie_mf = self._create_mf(
             self.zmeczenie.universe,
             [5, 25, 50, 75, 90],
@@ -128,12 +103,10 @@ class IntelligentGymMachineExperimental:
         for name, mf in zmeczenie_mf.items():
             self.zmeczenie[name] = mf
 
-        # 5. TRYB TRENINGU (zawsze trójkątne)
         self.tryb['silowy'] = fuzz.trimf(self.tryb.universe, [1, 1, 1.8])
         self.tryb['hipertrofia'] = fuzz.trimf(self.tryb.universe, [1.5, 2, 2.5])
         self.tryb['wytrzymalosc'] = fuzz.trimf(self.tryb.universe, [2.2, 3, 3])
 
-        # 6. OPÓR MASZYNY
         opor_mf = self._create_mf(
             self.opor.universe,
             [10, 30, 50, 70, 90],
@@ -142,7 +115,6 @@ class IntelligentGymMachineExperimental:
         for name, mf in opor_mf.items():
             self.opor[name] = mf
 
-        # 7. SYGNAŁ FEEDBACKU (zawsze trójkątne)
         self.feedback['zwolnij'] = fuzz.trimf(self.feedback.universe, [1, 1, 2])
         self.feedback['dobrze'] = fuzz.trimf(self.feedback.universe, [1.5, 2.5, 3.5])
         self.feedback['idealnie'] = fuzz.trimf(self.feedback.universe, [2.5, 3, 3.5])
@@ -153,7 +125,7 @@ class IntelligentGymMachineExperimental:
         """Definicja bazy reguł (uproszczona wersja)."""
         self.rules = []
 
-        # Reguły dla accommodating resistance
+
         self.rules.append(ctrl.Rule(
             self.faza['poczatkowa'] & self.sila['srednia'],
             (self.opor['niski'], self.feedback['dobrze'])
@@ -179,7 +151,6 @@ class IntelligentGymMachineExperimental:
             (self.opor['maksymalny'], self.feedback['idealnie'])
         ))
 
-        # Reguły dla prędkości
         self.rules.append(ctrl.Rule(
             self.predkosc['bardzo_szybka'] & self.zmeczenie['swiezy'],
             (self.opor['wysoki'], self.feedback['zwolnij'])
@@ -189,7 +160,6 @@ class IntelligentGymMachineExperimental:
             (self.opor['niski'], self.feedback['mocniej'])
         ))
 
-        # Reguły dla zmęczenia
         self.rules.append(ctrl.Rule(
             self.zmeczenie['wyczerpanie'],
             (self.opor['minimalny'], self.feedback['stop'])
@@ -203,7 +173,6 @@ class IntelligentGymMachineExperimental:
             (self.opor['sredni'], self.feedback['idealnie'])
         ))
 
-        # Reguły dla trybów
         self.rules.append(ctrl.Rule(
             self.tryb['silowy'] & self.sila['bardzo_wysoka'],
             (self.opor['maksymalny'], self.feedback['idealnie'])
@@ -213,19 +182,16 @@ class IntelligentGymMachineExperimental:
             (self.opor['niski'], self.feedback['dobrze'])
         ))
 
-        # Reguły domyślne
         self.rules.append(ctrl.Rule(
             self.sila['srednia'] & self.predkosc['umiarkowana'] & self.zmeczenie['lekkie'],
             (self.opor['sredni'], self.feedback['idealnie'])
         ))
 
     def build_system(self):
-        """Budowa systemu sterowania."""
         self.control_system = ctrl.ControlSystem(self.rules)
         self.simulator = ctrl.ControlSystemSimulation(self.control_system)
 
     def compute(self, sila, predkosc, faza, zmeczenie, tryb):
-        """Wnioskowanie rozmyte."""
         try:
             self.simulator.input['sila_generowana'] = sila
             self.simulator.input['predkosc_ruchu'] = predkosc

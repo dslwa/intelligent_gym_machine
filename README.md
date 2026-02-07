@@ -1,100 +1,149 @@
-# Inteligentny System Sterowania Maszyną Treningową
+# Intelligent Gym Machine — Fuzzy Inference System
 
-System wnioskowania rozmytego (FIS) typu Mamdani do dynamicznego sterowania oporem maszyny treningowej.
+An intelligent training machine control system based on fuzzy logic (Mamdani FIS). Dynamically adjusts machine resistance and generates real-time feedback based on the user's biomechanical parameters during exercise.
 
-## Opis projektu
+## Table of Contents
 
-Projekt realizowany w ramach przedmiotu **Inżynieria wiedzy i systemy ekspertowe** na AGH.
+- [System Overview](#system-overview)
+- [Architecture](#architecture)
+- [Linguistic Variables](#linguistic-variables)
+- [Rule Base](#rule-base)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Output](#output)
+- [Technologies](#technologies)
 
-System steruje maszyną do wyciskania (chest press) z silnikiem elektromagnetycznym, dynamicznie dostosowując opór w zależności od:
-- Aktualnej siły generowanej przez użytkownika
-- Prędkości wykonywania ruchu
-- Fazy ruchu (pozycji w zakresie ROM)
-- Poziomu zmęczenia użytkownika
-- Wybranego trybu treningowego
+## System Overview
 
-## Struktura projektu
+The system implements a Mamdani-type fuzzy controller with the following configuration:
+
+| Parameter | Value |
+|---|---|
+| FIS Type | Mamdani |
+| T-norm (AND) | Minimum |
+| S-norm (OR) | Maximum |
+| Implication | Minimum |
+| Aggregation | Maximum |
+| Defuzzification | Centroid |
+| Number of Rules | 30+ |
+
+The system incorporates sports biomechanics principles:
+- **Accommodating resistance** — adjusts load based on mechanical leverage across movement phases
+- **Drop-set protocol** — reduces resistance as fatigue increases
+- **Safety constraints** — prevents overloading under high fatigue conditions
+- **Movement phase optimization** — varies system response depending on range of motion (ROM)
+
+## Architecture
 
 ```
-intelligent_gym_machine/
-├── src/
-│   ├── core/
-│   │   ├── fis_engine.py      # Główny silnik FIS (klasa IntelligentGymMachine)
-│   │   └── experimental.py     # Wersja eksperymentalna z różnymi funkcjami MF
-│   ├── visualization/
-│   │   └── plots.py           # Wykresy i wizualizacje
-│   ├── analysis/
-│   │   ├── scenarios.py       # Scenariusze wnioskowania
-│   │   └── experiments.py     # Eksperymenty porównawcze
-│   └── documentation/
-│       └── generator.py       # Generator dokumentacji
-├── output/                    # Wygenerowane pliki
-├── main.py                    # Punkt wejścia
-└── requirements.txt
+src/
+├── core/
+│   ├── fis_engine.py          # Main FIS engine (IntelligentGymMachine class)
+│   └── experimental.py        # Experimental version with multiple MF types
+├── analysis/
+│   ├── scenarios.py           # 8 biomechanical test scenarios
+│   └── experiments.py         # Comparative experiments across MF types
+└── visualization/
+    └── plots.py               # Visualizations: MFs, 3D surfaces, workout simulations
 ```
 
-## Instalacja
+## Linguistic Variables
+
+### Inputs
+
+| Variable | Range | Linguistic Terms |
+|---|---|---|
+| Generated Force | 0–500 N | bardzo_niska, niska, srednia, wysoka, bardzo_wysoka |
+| Movement Speed | 0–1.5 m/s | bardzo_wolna, wolna, umiarkowana, szybka, bardzo_szybka |
+| Movement Phase | 0–100 % ROM | poczatkowa, dolna, srodkowa, gorna, koncowa |
+| Fatigue Index | 0–100 % | swiezy, lekkie, umiarkowane, wysokie, wyczerpanie |
+| Training Mode | 1–3 | silowy, hipertrofia, wytrzymalosc |
+
+### Outputs
+
+| Variable | Range | Linguistic Terms |
+|---|---|---|
+| Machine Resistance | 0–100 % | minimalny, niski, sredni, wysoki, maksymalny |
+| Feedback Signal | 1–5 | zwolnij, dobrze, idealnie, mocniej, stop |
+
+## Rule Base
+
+The system contains over 30 fuzzy rules grounded in sports biomechanics. Examples:
+
+```
+IF (phase = initial AND force = medium)
+    THEN (resistance = low, feedback = good)
+
+IF (fatigue = exhausted)
+    THEN (resistance = minimal, feedback = stop)
+
+IF (speed = very_fast AND fatigue = fresh)
+    THEN (resistance = high, feedback = slow_down)
+
+IF (mode = strength AND force = very_high AND fatigue = fresh)
+    THEN (resistance = maximal, feedback = perfect)
+```
+
+## Installation
 
 ```bash
+git clone <repo-url>
+cd intelligent_gym_machine
 pip install -r requirements.txt
 ```
 
-## Uruchomienie
+**Requirements:** Python 3.8+
+
+## Usage
+
+### Full Demo
 
 ```bash
 python main.py
 ```
 
-## Zmienne lingwistyczne
+Runs a complete system demonstration:
+1. FIS engine initialization
+2. Membership function visualization
+3. 8 biomechanical scenario evaluation
+4. 3D surface plot generation
+5. Full workout simulations (hypertrophy and strength modes)
+6. Comparative experiments across membership function types
 
-### Wejściowe
-| Zmienna | Zakres | Jednostka | Opis |
-|---------|--------|-----------|------|
-| Siła generowana | 0-500 | N | Z czujnika tensometrycznego |
-| Prędkość ruchu | 0-1.5 | m/s | Z enkodera liniowego |
-| Faza ruchu | 0-100 | % ROM | Pozycja w zakresie ruchu |
-| Wskaźnik zmęczenia | 0-100 | % | Spadek peak force |
-| Tryb treningu | 1-3 | - | 1=siłowy, 2=hipertrofia, 3=wytrzymałość |
+### Membership Function Comparison
 
-### Wyjściowe
-| Zmienna | Zakres | Jednostka | Opis |
-|---------|--------|-----------|------|
-| Opór maszyny | 0-100 | % | Sygnał PWM do silnika |
-| Sygnał feedbacku | 1-5 | - | 1=zwolnij, 3=idealnie, 5=stop |
+```bash
+python generate_comparison.py
+```
 
-## Baza reguł
+Generates results for two MF types (triangular vs. Gaussian) in separate output folders.
 
-System zawiera 30 reguł rozmytych opartych na wiedzy eksperckiej z zakresu:
-- Biomechaniki treningu siłowego
-- Zasady accommodating resistance
-- Protokołów bezpieczeństwa
+## Output
 
-## Wygenerowane pliki
+The system generates the following visualizations in the `output/` directory:
 
-Po uruchomieniu w katalogu `output/` znajdziesz:
+| File | Description |
+|---|---|
+| `membership_functions.png` | Membership functions for all input and output variables |
+| `surface_sila_faza.png` | 3D surface: force × movement phase |
+| `surface_zmeczenie_predkosc.png` | 3D surface: fatigue × speed |
+| `simulation_hipertrofia.png` | Hypertrophy workout simulation (force, speed, fatigue, feedback) |
+| `simulation_silowy.png` | Strength workout simulation |
+| `comparison_membership_functions.png` | Membership function type comparison |
+| `comparison_inference_results.png` | Inference output comparison across MF types |
 
-| Plik | Opis |
-|------|------|
-| `membership_functions.png` | Funkcje przynależności wszystkich zmiennych |
-| `surface_sila_faza.png` | Powierzchnia 3D: siła vs faza |
-| `surface_zmeczenie_predkosc.png` | Powierzchnia 3D: zmęczenie vs prędkość |
-| `simulation_hipertrofia.png` | Symulacja treningu hipertrofii |
-| `simulation_silowy.png` | Symulacja treningu siłowego |
-| `comparison_membership_functions.png` | Porównanie typów funkcji MF |
-| `comparison_inference_results.png` | Porównanie wyników wnioskowania |
-| `dokumentacja_fis.txt` | Pełna dokumentacja do sprawozdania |
+### Experimental Version
 
-## Technologie
+The `IntelligentGymMachineExperimental` class allows testing with four membership function types:
 
-- Python 3.8+
-- NumPy
-- scikit-fuzzy
-- Matplotlib
+- **triangular** — triangle/trapezoid functions (default)
+- **gaussian** — Gaussian bell curves (smooth transitions)
+- **gbell** — generalized bell curves
+- **sigmoid** — sigmoid functions
 
-## Autor
+## Technologies
 
-Projekt studencki AGH - Inżynieria wiedzy i systemy ekspertowe
-
-## Licencja
-
-MIT
+- **Python 3** — implementation language
+- **NumPy** — numerical computation
+- **scikit-fuzzy** — fuzzy logic engine
+- **Matplotlib** — data visualization
