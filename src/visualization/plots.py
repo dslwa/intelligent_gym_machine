@@ -121,7 +121,7 @@ def plot_membership_functions(machine, save_path=None, output_dir='output'):
 
 def plot_surface_3d(machine, var1_name, var2_name, var1_range, var2_range,
                     fixed_values, save_path=None, output_dir='output', smooth=True):
- 
+
     var1_start, var1_end, var1_step = var1_range
     var2_start, var2_end, var2_step = var2_range
 
@@ -157,7 +157,7 @@ def plot_surface_3d(machine, var1_name, var2_name, var1_range, var2_range,
                 machine.simulator.compute()
                 Z_opor[i, j] = machine.simulator.output['opor_maszyny']
                 Z_feedback[i, j] = machine.simulator.output['sygnal_feedback']
-            except:
+            except Exception:
                 Z_opor[i, j] = np.nan
                 Z_feedback[i, j] = np.nan
 

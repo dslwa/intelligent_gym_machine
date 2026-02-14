@@ -2,8 +2,10 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
+from src.core.fis_engine import IntelligentGymMachine
 
-class IntelligentGymMachineExperimental:
+
+class IntelligentGymMachineExperimental(IntelligentGymMachine):
     FUNCTION_TYPES = ['triangular', 'gaussian', 'gbell', 'sigmoid']
 
     def __init__(self, mf_type='triangular'):
@@ -103,6 +105,11 @@ class IntelligentGymMachineExperimental:
         for name, mf in zmeczenie_mf.items():
             self.zmeczenie[name] = mf
 
+        # Training mode — discrete/categorical variable (1=strength, 2=hypertrophy, 3=endurance).
+        # Triangular MFs are retained regardless of mf_type because this variable represents
+        # distinct training protocols, not a continuous physical quantity. Smooth functions
+        # (Gaussian, sigmoid) would imply gradual transitions between categorically different
+        # training methodologies, which is not physiologically meaningful.
         self.tryb['silowy'] = fuzz.trimf(self.tryb.universe, [1, 1, 1.8])
         self.tryb['hipertrofia'] = fuzz.trimf(self.tryb.universe, [1.5, 2, 2.5])
         self.tryb['wytrzymalosc'] = fuzz.trimf(self.tryb.universe, [2.2, 3, 3])
@@ -115,6 +122,11 @@ class IntelligentGymMachineExperimental:
         for name, mf in opor_mf.items():
             self.opor[name] = mf
 
+        # Feedback signal — discrete command variable (1=slow_down, ..., 5=stop).
+        # Triangular MFs are retained because feedback represents distinct control signals
+        # sent to the user, not a continuous measurable quantity. Sharp boundaries between
+        # linguistic terms ensure unambiguous, actionable feedback — a critical safety
+        # requirement (e.g., clear distinction between "good" and "stop").
         self.feedback['zwolnij'] = fuzz.trimf(self.feedback.universe, [1, 1, 2])
         self.feedback['dobrze'] = fuzz.trimf(self.feedback.universe, [1.5, 2.5, 3.5])
         self.feedback['idealnie'] = fuzz.trimf(self.feedback.universe, [2.5, 3, 3.5])
@@ -124,7 +136,6 @@ class IntelligentGymMachineExperimental:
     def setup_rules(self):
         """Definicja bazy reguł (uproszczona wersja)."""
         self.rules = []
-
 
         self.rules.append(ctrl.Rule(
             self.faza['poczatkowa'] & self.sila['srednia'],
@@ -192,6 +203,7 @@ class IntelligentGymMachineExperimental:
         self.simulator = ctrl.ControlSystemSimulation(self.control_system)
 
     def compute(self, sila, predkosc, faza, zmeczenie, tryb):
+        self.simulator.reset()
         try:
             self.simulator.input['sila_generowana'] = sila
             self.simulator.input['predkosc_ruchu'] = predkosc
@@ -199,9 +211,11 @@ class IntelligentGymMachineExperimental:
             self.simulator.input['wskaznik_zmeczenia'] = zmeczenie
             self.simulator.input['tryb_treningu'] = tryb
             self.simulator.compute()
+            feedback_val = self.simulator.output['sygnal_feedback']
             return {
                 'opor': self.simulator.output['opor_maszyny'],
-                'feedback': self.simulator.output['sygnal_feedback']
+                'feedback': feedback_val,
+                'feedback_text': self._get_feedback_text(feedback_val)
             }
         except Exception as e:
-            return {'opor': 50.0, 'feedback': 3.0, 'error': str(e)}
+            return {'opor': 50.0, 'feedback': 3.0, 'feedback_text': 'DOBRZE', 'error': str(e)}

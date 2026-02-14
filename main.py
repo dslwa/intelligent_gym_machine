@@ -1,7 +1,7 @@
 import os
 import warnings
-warnings.filterwarnings('ignore')
 
+from config.logging_config import configure_logging
 from src.core.fis_engine import IntelligentGymMachine
 from src.visualization.plots import (
     plot_membership_functions,
@@ -12,37 +12,39 @@ from src.analysis.scenarios import run_scenarios_with_analysis
 from src.analysis.experiments import run_experiments
 
 
+warnings.filterwarnings('ignore')
+logger = configure_logging()
+
+
 def ensure_output_dir():
-    """Upewnia się, że katalog output istnieje."""
-    if not os.path.exists('output'):
-        os.makedirs('output')
+    """Upewnia sie, ze katalog output istnieje."""
+    os.makedirs('output', exist_ok=True)
 
 
 def main():
-    """Główna funkcja programu."""
+    """Glowna funkcja programu."""
 
-    print("\n" + "=" * 70)
-    print("  INTELIGENTNY SYSTEM STEROWANIA MASZYNA TRENINGOWA")
-    print("  System wnioskowania rozmytego (FIS) typu Mamdani")
-    print("=" * 70 + "\n")
+    logger.info("%s", "=" * 70)
+    logger.info("INTELIGENTNY SYSTEM STEROWANIA MASZYNA TRENINGOWA")
+    logger.info("System wnioskowania rozmytego (FIS) typu Mamdani")
+    logger.info("%s", "=" * 70)
 
     ensure_output_dir()
 
-    print("Inicjalizacja systemu FIS...")
+    logger.info("Inicjalizacja systemu FIS...")
     machine = IntelligentGymMachine()
-    print(f"System zainicjalizowany pomyslnie!")
-    print(f"  * Liczba zmiennych wejsciowych: 5")
-    print(f"  * Liczba zmiennych wyjsciowych: 2")
-    print(f"  * Liczba regul: {len(machine.rules)}")
+    logger.info("System zainicjalizowany pomyslnie!")
+    logger.info("  * Liczba zmiennych wejsciowych: %s", 5)
+    logger.info("  * Liczba zmiennych wyjsciowych: %s", 2)
+    logger.info("  * Liczba regul: %s", len(machine.rules))
 
-    print("\n[1/5] Generowanie wykresow funkcji przynaleznosci...")
+    logger.info("[1/5] Generowanie wykresow funkcji przynaleznosci...")
     plot_membership_functions(machine, save_path='membership_functions.png', output_dir='output')
 
-    print("\n[2/5] Uruchamianie scenariuszy wnioskowania z analiza...")
+    logger.info("[2/5] Uruchamianie scenariuszy wnioskowania z analiza...")
     run_scenarios_with_analysis(machine)
 
-    print("\n[3/5] Generowanie powierzchni wnioskowania 3D...")
-
+    logger.info("[3/5] Generowanie powierzchni wnioskowania 3D...")
     plot_surface_3d(
         machine,
         'sila', 'faza',
@@ -61,21 +63,20 @@ def main():
         output_dir='output'
     )
 
-    print("\n[4/5] Symulacja pelnego cwiczenia...")
-
+    logger.info("[4/5] Symulacja pelnego cwiczenia...")
     simulate_exercise(machine, tryb=2, serie=3, powtorzenia=10,
                      save_path='simulation_hipertrofia.png', output_dir='output')
 
     simulate_exercise(machine, tryb=1, serie=4, powtorzenia=5,
                      save_path='simulation_silowy.png', output_dir='output')
 
-    print("\n[5/5] Eksperymenty z roznymi typami funkcji przynaleznosci...")
+    logger.info("[5/5] Eksperymenty z roznymi typami funkcji przynaleznosci...")
     run_experiments(output_dir='output')
 
-    print("\n" + "=" * 70)
-    print("TABELE FUNKCJI PRZYNALEZNOSCI:")
-    print("=" * 70)
-    print(machine.get_membership_functions_table())
+    logger.info("%s", "=" * 70)
+    logger.info("TABELE FUNKCJI PRZYNALEZNOSCI:")
+    logger.info("%s", "=" * 70)
+    logger.info("\n%s", machine.get_membership_functions_table())
 
 
 if __name__ == "__main__":
