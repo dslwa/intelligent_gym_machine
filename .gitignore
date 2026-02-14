@@ -17,6 +17,8 @@ env/
 # Output files (regenerowane przez program)
 output/*.png
 output/*.txt
+output_trojkat/
+output_gauss/
 
 # System
 .DS_Store
