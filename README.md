@@ -126,7 +126,7 @@ intelligent_gym_machine/
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/dslwa/intelligent_gym_machine.git
 cd intelligent_gym_machine
 pip install -r requirements.txt
 ```
